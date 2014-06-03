@@ -30,8 +30,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.io.Serializable;
 
-import processmanager.MigratableProcess;
-
 public class Client {
 	public Location location;
 	public static int clientKey = -1;

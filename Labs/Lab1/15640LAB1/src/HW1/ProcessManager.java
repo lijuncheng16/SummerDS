@@ -15,10 +15,6 @@ import java.net.UnknownHostException;
 
 import com.sun.xml.internal.fastinfoset.util.StringArray;
 
-import network.Client;
-import network.Server;
-import network.StatusMessages;
-
 public class ProcessManager {
 	
 	// message code when sending messages to server

@@ -11,10 +11,6 @@ import java.io.IOException;
 import java.lang.Thread;
 import java.lang.InterruptedException;
 
-import processmanager.MigratableProcess;
-import transactionalio.TransactionalFileInputStream;
-import transactionalio.TransactionalFileOutputStream;
-
 public class GrepProcess implements MigratableProcess
 {
 	private TransactionalFileInputStream  inFile;
