@@ -30,7 +30,7 @@ public class GrepProcess implements MigratableProcess
 		query = args[0];
 		inFile = new TransactionalFileInputStream(args[1]);
 		
-		//we assume that this implmentation is same to the FileoutStream implementation
+		//we assume that this implementation is same to the FileoutStream implementation
 		// which takes a boolean for an append option
 		// @param - true implies file will be written from the end
 		// @param - false implies file will be written from the beginning 
