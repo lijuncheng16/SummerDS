@@ -1,4 +1,4 @@
-package HW1;
+package dshomework.network;
 
 
 import java.net.Socket;
@@ -57,7 +57,5 @@ public class ClientInfo {
 		return s;
 	}
 
-	public void launch(String[] input) {
-		Client.launch(input);
-	}
+
 }

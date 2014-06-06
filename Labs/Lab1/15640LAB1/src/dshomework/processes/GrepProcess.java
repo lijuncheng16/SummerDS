@@ -1,7 +1,5 @@
-package HW1;
+package dshomework.processes;
 
-
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.EOFException;
 import java.io.DataInputStream;
@@ -11,54 +9,56 @@ import java.io.IOException;
 import java.lang.Thread;
 import java.lang.InterruptedException;
 
-public class GrepProcess implements MigratableProcess
+import dshomework.network.MigratableProcess;
+import dshomework.network.TransactionalFileInputStream;
+import dshomework.network.TransactionalFileOutputStream;
+
+
+public class GrepProcess extends MigratableProcess
 {
 	private TransactionalFileInputStream  inFile;
 	private TransactionalFileOutputStream outFile;
 	private String query;
-	public  int intCount=0;
-
+	public int i = 0;
 	private volatile boolean suspending;
+	String[] passedArgs;
 
 	public GrepProcess(String args[]) throws Exception
 	{
 		if (args.length != 3) {
+			System.out.println("from grep: arr len ="+args.length);
 			System.out.println("usage: GrepProcess <queryString> <inputFile> <outputFile>");
-			//throw new Exception("Invalid Arguments");
+			throw new Exception("Invalid Arguments");
 		}
-		
+		passedArgs=args;
 		query = args[0];
 		inFile = new TransactionalFileInputStream(args[1]);
-		
-		//we assume that this implementation is same to the FileoutStream implementation
-		// which takes a boolean for an append option
-		// @param - true implies file will be written from the end
-		// @param - false implies file will be written from the beginning 
 		outFile = new TransactionalFileOutputStream(args[2], false);
 	}
-
 
 	public void run()
 	{
 		PrintStream out = new PrintStream(outFile);
-		//replace deprecated methods
-		BufferedReader br = new BufferedReader(new InputStreamReader(inFile));
+		DataInputStream in = new DataInputStream(inFile);
 
 		try {
 			while (!suspending) {
-				String line = br.readLine();
-				System.out.println("Line read :"+line);
-				Thread.sleep(400);
-				
-				if (line!=null && line.contains(query)) {
-					out.println(line);
+				@SuppressWarnings("deprecation")
+				String line = in.readLine();
+				System.out.println(line+"+READ");
+				if (line == null) {
+				  System.exit(1);
 				}
-
-					if (line == null) break;
+				
+				if (line.contains(query)) {
+					out.println(line);
+					//System.out.println(line);
+					//System.out.println(i++);
+				}
 				
 				// Make grep take longer so that we don't require extremely large files for interesting results
 				try {
-					Thread.sleep(100);
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					// ignore it
 				}
@@ -67,19 +67,15 @@ public class GrepProcess implements MigratableProcess
 			//End of File
 		} catch (IOException e) {
 			System.out.println ("GrepProcess: Error: " + e);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
 		}
 
-
+	
 		suspending = false;
-	}//end of run
+	}
 
 	public void suspend()
 	{
 		suspending = true;
-		System.out.println("Nonnative suspend");
 		while (suspending);
 	}
 
@@ -94,15 +90,6 @@ public class GrepProcess implements MigratableProcess
 		// TODO Auto-generated method stub
 		
 	}
-	
-	
 
-	
-	@Override
-	public String toString(String[] paramArray) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
 
 }

@@ -1,4 +1,4 @@
-package HW1;
+package dshomework.network;
 
 //import SlaveServer;
 //import SlaveServiceException;
@@ -15,7 +15,9 @@ import java.net.UnknownHostException;
 
 import com.sun.xml.internal.fastinfoset.util.StringArray;
 
-public class ProcessManager {
+
+
+public class ProcessManagerRedundant {
 	
 	// message code when sending messages to server
 	public static int messageCode = 0;

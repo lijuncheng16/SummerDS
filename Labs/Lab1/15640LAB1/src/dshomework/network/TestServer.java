@@ -1,4 +1,4 @@
-package HW1;
+package dshomework.network;
 
 
 import java.io.DataInputStream;
@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+
 
 
 public class TestServer {
@@ -32,11 +33,11 @@ public class TestServer {
 			            		Socket clientSocket = serverSocket.accept();    
 
 					            ObjectInputStream inobj = new ObjectInputStream(clientSocket.getInputStream());
-					            Runnable newObj = (Runnable)inobj.readObject();
+					            MigratableProcess newObj = (MigratableProcess)inobj.readObject();
 					            System.out.println("Object received");
 					            //fff.suspend();
 					            new Thread(newObj).start();
-					            try{
+					            /*try{
 					            	Field myField = Thread.class.getDeclaredField("target");
 					            	myField.setAccessible(true);
 					            	
@@ -47,7 +48,7 @@ public class TestServer {
 					            	
 					            }catch(Exception e){
 					            	e.printStackTrace();
-					            }
+					            }*/
 					            
 					            System.out.println("Object created.");
 					            //fff.run();

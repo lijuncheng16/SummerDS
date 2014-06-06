@@ -1,4 +1,4 @@
-package HW1;
+package dshomework.network;
 
 
 /**
@@ -26,22 +26,35 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.io.Serializable;
+
 
 public class Client {
 	public Location location;
 	public static int clientKey = -1;
-	private static HashMap<Integer, ProcessInfo> processMap = new HashMap<Integer, ProcessInfo>();
+	//public static ClientProcessMap processes;
 	private static int processID = 0;
-	public static ProcessHashMap processes;
+	public static ConcurrentHashMap<String, MigratableProcess> processes;
 	
 	public int getSocketNumber(){
 		return location.socketNumber;
 	}
 	
 	public int receiverPort = 6666;
+	
+	//method to display all processese running on this client
+	public static void displayProcesses(){
+		System.out.println("Processes running on client "+Client.clientKey+" are as follows:" );
+		for(String key: processes.keySet()){
+			System.out.print(processes.get(key).getName()+" ");
+		}
+		System.out.println();
+	}
+	
 	
 	public static void main(String args[]) throws UnknownHostException, IOException, ClassNotFoundException{
 		//check input
@@ -51,7 +64,7 @@ public class Client {
 	        System.exit(0);
 	    }
 		//for storing all the rpocesses at this client 
-		processes = new ProcessHashMap();
+		
 				/* Try to connect to server */
 		        String hostName = Server.HOSTNAME;
 		        int portNumber = Server.INITIAL_PORT;
@@ -85,6 +98,9 @@ public class Client {
 	            	System.exit(-1);
 	            }
 	            System.out.println("Connection established. This client's ID is "+Integer.parseInt(clientKeyArray[1]));
+	            Client.clientKey = Integer.parseInt(clientKeyArray[1]);
+	            processes = new ConcurrentHashMap<String,MigratableProcess>();
+	            
 	            try{
 	            // create a new client hearbeat thread for this client
 	            ClientHeartbeat chb = new ClientHeartbeat(Integer.parseInt(clientKeyArray[1]));
@@ -103,170 +119,10 @@ public class Client {
 	            	outToServer.println(userInput);
 	                System.out.println("echo: " + inFromServer.readLine());
 	            }
-	}//end fo main
-	
-	        /*
-	         *  Prepare to read message from server 
-	         * 
-			String str = null;
-			String[] args = null;
-			while ((str = inFromServer.readLine()) != null) {
-				args = str.split(" ");
-
-				if (args[0].equals("launch"))
-					launch(args);
-				//	 suspend a process given process ID 
-				else if (args[0].equalsIgnoreCase("suspend")) {
-
-					//check the process ID 
-					int migrateProcessID = -1;
-					try {
-						migrateProcessID = Integer.parseInt(args[1]);
-					} catch (NumberFormatException e) {
-						System.err.println("error in process ID format");
-						continue;
-					}
-
-					MigratableProcess mpWrite = processMap
-							.get(migrateProcessID).process;
-
-					if (mpWrite == null) {
-						System.err.println("wrong process ID");
-						continue;
-					}
-
-					mpWrite.suspend();
-					processMap.get(migrateProcessID).status = ProcessStatus.SUSPENDED;
-
-					//write the suspended process into a file 
-					FileOutputStream outputFile = new FileOutputStream(args[1]
-							+ args[2] + args[3] + ".obj");
-					ObjectOutputStream outputObj = new ObjectOutputStream(
-							outputFile);
-					outputObj.writeObject(mpWrite);
-					outputObj.flush();
-					outputObj.close();
-					outputFile.close();
-
-					// acknowledge back to master server 
-					outToServer.write("finish suspending\n");
-					outToServer.flush();
-
-					// remove the process from process list 
-					processMap.remove(migrateProcessID);
-				}
-                
-				
-				 /* resume a suspended process by reading from an *.obj file
-				 * previously dumped by another slave server
-				 */
-	            /*
-				else if (args[0].equals("resume")) {
-					//read the *.obj file 
-					FileInputStream inputFile = new FileInputStream(args[1]
-							+ args[2] + args[3] + ".obj");
-					ObjectInputStream inputObj = new ObjectInputStream(inputFile);
-					MigratableProcess mpRead = (MigratableProcess) inputObj.readObject();
-					inputObj.close();
-					inputFile.close();
-					
-					// run the process 
-					Thread newThread = new Thread(mpRead);
-					newThread.start();
-
-					// add this newly started process to the process list 
-					ProcessInfo processInfo = new ProcessInfo();
-					processInfo.process = mpRead;
-					processInfo.status = ProcessStatus.RUNNING;
-					processID++;
-					processMap.put(processID, processInfo);
-				}
-
-				// iterate through the process list and send back to server 
-	/*			else if (str.equals("processlist")) {
-					for (Map.Entry<Integer, ProcessInfo> entry : processMap
-							.entrySet()) {
-						if (entry.getValue().process.finalize())
-							outToServer.write("#"
-									+ entry.getKey()
-									+ "\t"
-									+ entry.getValue().process.getClass()
-											.getSimpleName() + " "
-									+ ProcessStatus.TERMINATED + "\n");
-						else
-							outToServer.write("#"
-									+ entry.getKey()
-									+ "\t"
-									+ entry.getValue().process.getClass()
-											.getSimpleName() + " "
-									+ entry.getValue().status + "\n");
-						outToServer.flush();
-					}
-
-					outToServer.write("process list finish\n");
-					outToServer.flush();
-				}
-
-
-			}
-		*/
-
-
-
-		/**
-		 * Instantiate a new process
-		 * 
-		 * @param args
-		 */
-		public static void launch(String[] args) {
-			MigratableProcess newProcess = null;
-			try {
-				Class<MigratableProcess> processClass = (Class<MigratableProcess>) Class.forName(args[1]);
-				Constructor<?> processConstructor = processClass
-						.getConstructor(String[].class);
-				Object[] processArgs = { Arrays.copyOfRange(args, 2, args.length) };
-				newProcess = (MigratableProcess) processConstructor
-						.newInstance(processArgs);
-			} catch (ClassNotFoundException e) {
-				System.out.println("Could not find class " + args[1]);
-				e.printStackTrace();
-				return;
-			} catch (SecurityException e) {
-				System.out.println("Security Exception getting constructor for "
-						+ args[1]);
-				return;
-			} catch (NoSuchMethodException e) {
-				System.out.println("Could not find proper constructor for "
-						+ args[1]);
-				return;
-			} catch (IllegalArgumentException e) {
-				System.out.println("Illegal arguments for " + args[1]);
-				return;
-			} catch (InstantiationException e) {
-				System.out.println("Instantiation Exception for " + args[1]);
-				return;
-			} catch (IllegalAccessException e) {
-				System.out.println("IIlegal access exception for " + args[1]);
-				return;
-			} catch (InvocationTargetException e) {
-				System.out.println("Invocation target exception for " + args[1]);
-				return;
-			} catch (Exception e) {
-				System.err.println(e.toString());
-			}
-
-			Thread newThread = new Thread(newProcess);
-			newThread.start();
-
-			/* add this newly started process to the process list */
-			ProcessInfo processInfo = new ProcessInfo();
-			//processInfo.process = newProcess; TODO
-			//processInfo.status = ProcessStatus.RUNNING;
-			processID++;
-			processMap.put(processID, processInfo);
-		}
+	}
 
 }
+
 
 class ClientsideReceiver extends Thread{
 	public DataInputStream inputStream=null;
@@ -281,13 +137,24 @@ class ClientsideReceiver extends Thread{
 	@Override
 	public void run(){
 		try{
+			System.out.println("Client side receiver started on port .."+receiverSocket.getLocalPort());
 			//start to receive connections from other clients
 		    while (true) {
 
 			            //accept a new client connection by listening to port
+		    			System.out.println("Waiting for client");
 			            Socket clientSocket = receiverSocket.accept();    
-			            // TODO implement handling of serialized object
-	
+			            ObjectInputStream inobj = new ObjectInputStream(clientSocket.getInputStream());
+			            MigratableProcess newObj = (MigratableProcess)inobj.readObject();
+			            System.out.println("Object received. Starting at client ");
+			            //fff.suspend();
+			            
+			            Thread t = new Thread(newObj);
+			            System.out.println("Thread Id for thread is: "+ t.getId());
+			            //t.getId();
+			            Client.processes.put(newObj.getName(), newObj);
+			            t.start();
+			            Client.displayProcesses();
 	            }
 
 		} catch(IOException e){
@@ -298,6 +165,8 @@ class ClientsideReceiver extends Thread{
 				e1.printStackTrace();
 			}
 			System.out.println("Thread ended for client");
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
 		}
 			
 	}// end of ClientsideReceiver run
@@ -329,7 +198,10 @@ class ClientHeartbeat extends Thread{
 		        //BufferedReader inFromServer = new BufferedReader(new InputStreamReader(
 		        //heartbeatSocket.getInputStream()));
 		        outToServer.println("HEARTBEAT "+ clientKey);
-				System.out.println("SENT = HEARTBEAT "+ clientKey);
+				System.out.println("SENT = HEARTBEAT "+ clientKey +" Now sending process map..");
+				outToServer.println(Client.processes);
+				//include a safe time buffer
+				Thread.sleep(30);
 				heartbeatSocket.close();
 				try {
 					Thread.sleep(2000);
@@ -346,3 +218,22 @@ class ClientHeartbeat extends Thread{
 	}
 }
 
+class ClientProcessMap implements java.io.Serializable{
+
+	/**
+	 * Autogenerated
+	 */
+	private static final long serialVersionUID = -6942022907249520529L;
+	
+	public int clientKey;
+	public ConcurrentHashMap<String, Runnable> processList;
+	
+	
+	public ClientProcessMap(int c){
+		clientKey = c;
+		processList = new ConcurrentHashMap<String, Runnable>();
+	}
+	
+	
+	
+}

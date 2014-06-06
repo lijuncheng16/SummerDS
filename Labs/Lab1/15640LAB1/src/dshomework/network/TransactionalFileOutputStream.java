@@ -1,4 +1,4 @@
-package HW1;
+package dshomework.network;
 
 /**
  * When write is called from the class, it:
@@ -41,22 +41,26 @@ public class TransactionalFileOutputStream extends OutputStream implements Seria
 	//@referred  to http://www.java-tips.org/java-se-tips/java.io/how-to-use-random-access-file.html
 	@Override
 	public void write(int arg0) throws IOException {
+		// I tried useing fileoutput stream but it doesnt work as easily as randomaccessfile
+		// because it writes byte array  and requires the length of written bytes to be specified explicitly 
 		RandomAccessFile raf = null;
+		//File file = new File(fileName); //not being used
+		//FileOutputStream fos = new FileOutputStream(file); //not being used
 		try{
-			System.out.println("OUTPUT CALLED");
+			//I took a decision to not overwrite the entire file
 			raf = new RandomAccessFile(new File(fileName),"rw");
 			raf.seek(offset);
 			raf.write(arg0);
 			offset = offset + 1 ;
-			
+	 		// @referred to: http://tutorials.jenkov.com/java-io/file.html
 		}catch(Exception e){
 			System.out.println("Transactional stream output error. Exiting. ");
 			e.printStackTrace();
-			System.exit(-1);
+			
 			
 		}finally{
 			raf.close();
-			System.out.println("Transactional Output closed");
+			//System.out.println("Transactional Output closed");
 		}
 		
 	}

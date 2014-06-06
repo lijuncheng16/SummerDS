@@ -1,4 +1,4 @@
-package HW1;
+package dshomework.network;
 
 
 public class StatusMessages {

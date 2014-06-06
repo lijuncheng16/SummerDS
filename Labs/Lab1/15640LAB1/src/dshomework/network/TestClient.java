@@ -1,4 +1,4 @@
-package HW1;
+package dshomework.network;
 
 
 
@@ -10,6 +10,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,41 +19,40 @@ import java.net.UnknownHostException;
 
 public class TestClient {
 	public static void main(String args[]) throws Exception{
-		String[] arr = {"grepprocess","C:/test.txt","C:/javastuff/output.txt"};
-		GrepProcess r = new GrepProcess(arr);
+		/*
+		//
+		String processInform = "GrepProcess of C:\\input.txt C:\\output\\output.txt";
+		System.out.println(processInform);
+//		processInform.replaceFirst(regex, replacement)
+		System.out.println(processInform.substring(0,processInform.indexOf(' '))); // "72"
+		String [] ok = processInform.substring(processInform.indexOf(' ')+1).split(" "); // "tocirah sneab"
+		
+		/*GrepProcess r = new GrepProcess(arr);
 		Thread rp = new Thread(r);
 		rp.start();
+		*/
+		String[] arrv = {"encrypt","C:input.txt","C:/output/output.txt"};
+		// @referred to http://stackoverflow.com/questions/2126714/java-get-all-variable-names-in-a-class
+		Class<?> userClass = Class.forName("processmanager.EncryptProcess");
+		Constructor<?> constructorNew = userClass.getConstructor(String[].class);
+		MigratableProcess instance = (MigratableProcess)constructorNew.newInstance((Object)arrv);
+		Thread pp = new Thread(instance);
+		pp.start();  //comment this to launch
 		
 		String hostName = "localhost";
         int portNumber = Server.INITIAL_PORT;      
-        Thread.sleep(2000);
+        Thread.sleep(2000); //comment this to launch and uncomment to migrate
         Socket echoSocket = new Socket(hostName, portNumber);
-        //open print stream
-        //PrintWriter outToServer = new PrintWriter(echoSocket.getOutputStream(), true);
-        // open in stream
-        //BufferedReader inFromServer = new BufferedReader(new InputStreamReader(echoSocket.getInputStream()));
 
-        // standard input stream for user input
-        //BufferedReader stdUserInput = new BufferedReader(new InputStreamReader(System.in));
-        // store input
-        
         ObjectOutputStream outObj = new ObjectOutputStream(echoSocket.getOutputStream());
-        //Thread.sleep(1000);
-        r.suspend();
-        //rp.stop();
-        rp=null;
-        outObj.writeObject(r);
-        
+        Thread.sleep(1000); //comment this to launch and uncomment to migrate
+        instance.suspend(); //comment this to launch and uncomment to migrate
+        //delete process from here once 
+        pp=null;
+        outObj.writeObject(instance);
+        //provide timeout so that object is sent smoothly
         Thread.sleep(1000);
-        //Thread.sleep(1000);
-        //System.out.println("Resume");
-        //Field field = r.getClass().getDeclaredField("suspending");
-        //field.setAccessible(true);
-        //field.setBoolean(r, false);
         
-        //
-        //rp.stop();
-        //echoSocket.close();
 	}
 	
 	
@@ -108,4 +108,4 @@ class TestObject implements MigratableProcess {
 		return null;
 	}}
 */
-//reflectoin part was done from http://stackoverflow.com/questions/2126714/java-get-all-variable-names-in-a-class TODO
+//
