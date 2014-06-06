@@ -1,4 +1,4 @@
-package dshomework.network;
+package dshomework.processes;
 import java.lang.Runnable;
 import java.lang.Thread;
 import java.io.Serializable;

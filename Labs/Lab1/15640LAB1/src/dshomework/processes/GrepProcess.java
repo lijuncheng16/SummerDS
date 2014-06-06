@@ -9,9 +9,9 @@ import java.io.IOException;
 import java.lang.Thread;
 import java.lang.InterruptedException;
 
-import dshomework.network.MigratableProcess;
 import dshomework.network.TransactionalFileInputStream;
 import dshomework.network.TransactionalFileOutputStream;
+
 
 
 public class GrepProcess extends MigratableProcess
@@ -58,7 +58,7 @@ public class GrepProcess extends MigratableProcess
 				
 				// Make grep take longer so that we don't require extremely large files for interesting results
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					// ignore it
 				}

@@ -5,8 +5,6 @@ import java.awt.Toolkit;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import dshomework.network.MigratableProcess;
-
 public class StaticCounter extends MigratableProcess{
 	private volatile boolean suspending;
 	Toolkit toolkit;
@@ -16,13 +14,11 @@ public class StaticCounter extends MigratableProcess{
 	int counter = 0;
 	
 	
-	public StaticCounter(String args[]) throws Exception
-	{
-		
-			System.out.println("from grep: arr len ="+args.length);
-			System.out.println("usage: GrepProcess <queryString> <inputFile> <outputFile>");
-			throw new Exception("Invalid Arguments");
-		
+	public StaticCounter(String args[]) throws Exception{
+	if (args.length != 1) {
+		System.out.println("usage: processmanager.StaticCounter");
+		throw new Exception("Invalid Arguments");
+		}
 	}
 	
 	public void run() {
@@ -36,6 +32,7 @@ public class StaticCounter extends MigratableProcess{
 				e.printStackTrace();
 			}
 			    counter++;
+			    
 		}
 		suspending = false;
 	}

@@ -1,4 +1,4 @@
-package dshomework.network;
+package dshomework.processes;
 
 public class test {
 	public static void main(String[] args) throws InterruptedException{

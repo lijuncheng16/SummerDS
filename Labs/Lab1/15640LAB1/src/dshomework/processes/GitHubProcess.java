@@ -1,4 +1,4 @@
-package dshomework.network;
+package dshomework.processes;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -17,6 +17,9 @@ import org.eclipse.egit.github.core.client.PageIterator;
 import org.eclipse.egit.github.core.service.RepositoryService;
 import org.eclipse.egit.github.core.service.UserService;
 import org.eclipse.egit.github.core.User;
+
+import dshomework.network.TransactionalFileOutputStream;
+
 
 
 

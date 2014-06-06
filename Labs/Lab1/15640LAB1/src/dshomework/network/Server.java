@@ -11,6 +11,7 @@ package dshomework.network;
 
 
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
@@ -30,6 +31,8 @@ import java.util.Date;
 import java.util.concurrent.ConcurrentHashMap;
 import java.lang.Runnable;
 import java.lang.reflect.Constructor;
+
+import dshomework.processes.MigratableProcess;
 
 
 
@@ -77,19 +80,25 @@ public class Server {
 	
 	public static void main(String args[]) throws IOException{
 		int portNumber = Server.INITIAL_PORT;  
-		if (args.length != 1) {
-			System.err.println("Usage: java Server OR java Server <port>");
-	        System.err.println("No port specified. Using default port 2222");
+		
+		
+		if (args.length >1) {
+			System.err.println("Usage: java Server OR java Server <port>  (example java Server 2222)");
+	        System.exit(0);
 	        }
-		else
-			
-			portNumber = Integer.parseInt(args[1]);
+		
+		if(args.length ==1){
+			portNumber = Integer.parseInt(args[0]);
+			Server.INITIAL_PORT = portNumber;
+		}
+		
 			
 		clients = new ConcurrentHashMap<Integer, ClientInfo>();
 		processes = new ConcurrentHashMap<String, ProcessInfo>();
 		// setup the hearbeat socket for the server that listens to clients 
 		ServerSocket serverSocket1 = new ServerSocket(Server.HEARTBEAT_PORT);
 		new Thread(new ReceiveHearBeats(serverSocket1)).start();
+		System.out.println("Server ip = "+serverSocket1.getInetAddress());
 		
 	    
 		// setup the time out thread which looks intot he hashmap for timedout clients
@@ -186,11 +195,15 @@ public class Server {
 	// displays all the clients connected to the server 
 	public static void displayProcesses(){
 		
-		for(String i : Server.processes.keySet()){
-			log("Process Name:" + i +" | Located on client " + Server.processes.get(i).clientId);
-		}
-		System.out.println("Total processes="+(Server.processes.size()));
-		System.out.println();
+		if(Server.processes.size()>0){
+			log("Available processes are: ");
+			for(String i : Server.processes.keySet()){
+				log("Process Name:" + i +" | Located on client " + Server.processes.get(i).clientId);
+			}
+			System.out.println("Total processes="+(Server.processes.size()));
+			System.out.println();
+		} else
+			System.out.println("No processes to display");
 	}
 } // end of server class
 
@@ -330,10 +343,17 @@ class HandleHeartBeat extends Thread {
 	    
         // implement client handler after updating client info
 	    if(!Server.clients.containsKey(clientKey)){
-	    	System.out.println("Client with key "+clientKey+" does not exist or has timed-out.");
-	    	System.exit(0);
+	    	System.out.println("Client with key "+clientKey+" does not exist or has timed-out for more than 20 seconds. No action taken for this heartbeat.");
+	    	
 	    }
 	    else{
+	    	//for this client, delete all entries in the server's process list
+	    	for(String s : Server.processes.keySet()){
+	    		if(Server.processes.get(s).clientId==clientKey)
+	    			Server.processes.remove(s);
+	    	}
+	    	
+	    	
 	    	//update the lastseen of this client
 	    	java.util.Date currentDate1 = new java.util.Date();
 	    	Server.clients.get(clientKey).lastSeen = currentDate1.getTime();
@@ -352,18 +372,17 @@ class HandleHeartBeat extends Thread {
 	    	//System.out.println("Client" + clientKey + "  processes -> " + clientProcesses + ppp.length);
 	    	ProcessInfo currentLocation = new ProcessInfo(clientKey);
 	    	//if there are inputs
-	    	if(ppp!=null){
-	    		
+	    	if(ppp!=null && clientProcesses!=""){
 	    	
-	    		if(ppp.length>0){
-	    			
+	    		if(ppp.length>0 && clientProcesses.length()!=0){
+	    			//System.out.println("inserting into process map : "+clientProcesses);
+	    			//System.out.println(clientProcesses.length() +" --> length od inserted string");
 	    		
 	    			for(int i=0;i<ppp.length;i++){
 	    				Server.processes.put(ppp[i], currentLocation);
 	    			}
-	    		} else System.out.println("No processes to display"); 
-	    		
-	    	} else System.out.println("No processes to display");
+	    		}  
+	    	} 
 	    }
 	    
 	}
@@ -380,9 +399,9 @@ class ProcessInfo implements java.io.Serializable {
 	private static final long serialVersionUID = 1432283007962668575L;
 	public int clientId; //client currently running this process 
 	//public String processName; // this field is the key of the hashmap and not an element in the value
-	public int port;
-	public String ip;
-	public int clientListeningPort;
+	public int port; //location of client. Not of much use in current implementation, but still stored it
+	public String ip; // ip of client holding this process
+	public int clientListeningPort; // port where to contact the client holding this process
 	
 	//processId, clientId, controllerThread (Runnable)
 	public ProcessInfo(int client){
@@ -424,6 +443,14 @@ class DeleteTimedoutClients extends Thread {
 					// delete it from the hashmap
 					System.out.println("TIMEOUT: Client with ID "+i+" timed-out and has been removed from records.");
 					Server.clients.remove(i); 
+					//also delete processes related to that client
+					for(String p : Server.processes.keySet()){
+						//if process->clientID == current client being deleted
+						if(Server.processes.get(p).clientId==i){
+							Server.processes.remove(p);
+						}
+						
+					}
 				}else //else check if it is a process manager with timeout greater than 50 sec
 					if(currentTime - clientLastSeen > 20000 && Server.clients.get(i).processManager==true){
 						//process amanger has timed out
@@ -470,37 +497,91 @@ class ProcessManager extends Thread{
 			
 			try{
 				
-				log("Press: 1.List Clients 2. List Processes 3.Remove Process 4.Migrate Process: 5.Launch Process");
-				choice = Integer.parseInt((br.readLine()));
+				
+				
+				String inp = "";
+				while(inp.length()==0 || inp == null){
+					log("Press: 1.List Clients 2. List Processes 3.Remove Process 4.Migrate Process: 5.Launch Process");
+					inp = br.readLine();
+				}
+				
+				
+				choice = Integer.parseInt(inp);
 				switch(choice){
-				case(1): 
+				case(1): // display clients
 					System.out.println("Display Clients called by Process Manager:");
 					Server.displayClients();
 					break;
 				
-				case(2): 
-					
-					// 
-					log("Available processes are: "); // TODO
+				case(2): //display processes 
 					Server.displayProcesses();
 					break;
-					
-	            	
-					
-					
 				
-				case(3):
-					log("Enter process id to be removed");
-					processId= Integer.parseInt(br.readLine());
-					System.out.println("Process manager sending suspend request");
-					// TODO remove a process	
+				case(3)://remove process
+					log("Enter process name to be removed");
+					processName= br.readLine();
+					if(!Server.processes.containsKey(processName)){
+						System.out.println("No such process to remove");
+					} else {
+						//send the remove message
+						Remove rem = new Remove(processName);
+						// get clientInfo of the current process
+						ProcessInfo processInfo = Server.processes.get(processName);
+						String ip= Server.clients.get(processInfo.clientId).location.ipAddress;
+						System.out.println("contacting client on socket  "+ processInfo.clientListeningPort);
+						System.out.println("contacting client on socket  "+ ip.substring(1, ip.length()));
+
+						//return inetaddress from string
+						//System.out.println("This ip  and port --->"+(String)ip.substring(1, ip.length()) + processInfo.clientListeningPort);
+						clientSocket = new Socket(InetAddress.getByName((String)ip.substring(1, ip.length())),processInfo.clientListeningPort);
+						//send the remove class object
+						ObjectOutputStream outObj = new ObjectOutputStream(clientSocket.getOutputStream());
+						outObj.writeObject(rem);
+						Thread.sleep(200);
+						//clear references
+						outObj = null;
+						
+						Server.processes.remove(processName);
+					}
+					
 					break;
 				
 				
-				case(4): 
-					log("Enter process to be migrated");
-				
-					// TODO
+				case(4): //migrate thread
+					log("Enter process name to be migrated (e.g. Process0, Process1,..):");
+					String toBeMigrated = br.readLine();
+					//check if process exists
+					if(!Server.processes.containsKey(toBeMigrated)){
+						log("This process does not exist");
+						break;
+					}else {
+						log("Enter ID of destination client ");
+						int destinationClient = Integer.parseInt(br.readLine());
+						//if the destination client does not exist, display error
+						if(!Server.clients.containsKey(destinationClient)){
+							log("Client with this ID does not exist");
+							break;
+						} else{ //now, destination client and process to be migrated exist
+								//thus, migrate the process
+							Migrate m=new Migrate(toBeMigrated,
+									Server.clients.get(destinationClient).location.ipAddress,
+									Server.clients.get(destinationClient).receiverPort);
+							//TODO send migrate object
+							//find sourceIP and port of source client 
+							int sourcePort = Server.clients.get(Server.processes.get(toBeMigrated).clientId).receiverPort;
+							String sourceIp = Server.clients.get(Server.processes.get(toBeMigrated).clientId).location.ipAddress;
+							
+							Socket migrateSocket = new Socket(InetAddress.getByName((String)sourceIp.substring(1, sourceIp.length())),sourcePort);
+							ObjectOutputStream outObj = new ObjectOutputStream(migrateSocket.getOutputStream());
+	   					 	outObj.writeObject(m);
+	   					 	Thread.sleep(200);
+	            			migrateSocket.close();
+	            			//update reference locally
+							Server.processes.get(toBeMigrated).clientId = destinationClient;
+						}
+					}
+					
+					
 					break;
 				
 				case(5)://working input: GrepProcess of C:\\input.txt C:\\javastuff\\output.txt
@@ -511,9 +592,11 @@ class ProcessManager extends Thread{
 						break;
 					}
 					log(" Enter the name of the process to be launched (CaseSensitive) along with its arguments: ");
-					System.out.println("(Example: GrepProcess <queryString> <input.txt> <output.txt>)" +
-							"GrepProcess of C:\\input.txt C:\\javastuff\\output.txt");
-					
+					System.out.println("Examples: (GrepProcess <queryString> <input.txt> <output.txt>)" );
+					System.out.println("(dshomework.processes.StaticCounter )");
+					System.out.println("(dshomework.processes.EncryptProcess encrypt C:/input.txt C:/output/output.txt)");
+					System.out.println("(dshomework.processes.GitHubProcess <username> <output.txt>)");
+					System.out.println("For Convenience, you can copy&paste the content in the parenthesis, pay attention to the spaces");
 					
 					processInform = br.readLine();
 					
@@ -523,7 +606,7 @@ class ProcessManager extends Thread{
 					processCmd = processInform.substring(processInform.indexOf(" ")+1); 
 					String[] processArgs = processCmd.split(" ");
 
-					
+					//construct new class message
 					//@referred to http://stackoverflow.com/questions/9886266/is-there-a-way-to-instantiate-a-class-by-name-in-java
 					Class<?> userClass = Class.forName(processName);
 					Constructor<?> constructorNew = userClass.getConstructor(String[].class);
@@ -548,8 +631,11 @@ class ProcessManager extends Thread{
 					 outObj.writeObject(instance);
 					 Thread.sleep(200);
 					 outObj = null;
+					 Server.processes.put("Process"+(Server.PROCESSES_SPAWNED-1), new ProcessInfo(clientId));
+					 
 					 break;
 					
+					 
 				default: 
 					log(" Unexpected Input.");
 					break;
@@ -557,7 +643,8 @@ class ProcessManager extends Thread{
 				}//end of switch
 					
 				
-			}catch(Exception e){
+			}
+			catch(Exception e){
 				log("something went wrong. Restarting ProcessManager. Refer error message below:");
 				e.printStackTrace();
 				//if process manager exits, start new process manager
@@ -579,4 +666,29 @@ class ProcessManager extends Thread{
 	
 }
 
+
+class Migrate implements java.io.Serializable{
+	String processName;
+	int destinationPort;
+	String destinationIp;
+	public Migrate(){
+		
+	}
+	public Migrate(String p, String ip, int port){
+		processName=p;
+		destinationIp=ip;
+		destinationPort=port;
+	}
+	
+}
+
+class Remove implements java.io.Serializable{
+	String processName;
+	public Remove(){
+		
+	}
+	public Remove(String p){
+		processName = p;
+	}
+}
 

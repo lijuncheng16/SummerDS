@@ -3,6 +3,7 @@ package dshomework.network;
 
 
 
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,6 +16,9 @@ import java.lang.reflect.Field;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+
+import dshomework.processes.MigratableProcess;
+
 
 
 public class TestClient {
@@ -33,7 +37,7 @@ public class TestClient {
 		*/
 		String[] arrv = {"encrypt","C:input.txt","C:/output/output.txt"};
 		// @referred to http://stackoverflow.com/questions/2126714/java-get-all-variable-names-in-a-class
-		Class<?> userClass = Class.forName("processmanager.EncryptProcess");
+		Class<?> userClass = Class.forName("dshomework.processes.StaticCounter");
 		Constructor<?> constructorNew = userClass.getConstructor(String[].class);
 		MigratableProcess instance = (MigratableProcess)constructorNew.newInstance((Object)arrv);
 		Thread pp = new Thread(instance);
@@ -45,7 +49,7 @@ public class TestClient {
         Socket echoSocket = new Socket(hostName, portNumber);
 
         ObjectOutputStream outObj = new ObjectOutputStream(echoSocket.getOutputStream());
-        Thread.sleep(1000); //comment this to launch and uncomment to migrate
+        //Thread.sleep(1000); //comment this to launch and uncomment to migrate
         instance.suspend(); //comment this to launch and uncomment to migrate
         //delete process from here once 
         pp=null;

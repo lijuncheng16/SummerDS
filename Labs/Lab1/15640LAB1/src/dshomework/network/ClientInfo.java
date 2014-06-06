@@ -19,9 +19,6 @@ public class ClientInfo {
 	// location tuple of ip and port
 	public Location location;
 	
-	// a port where the receiver listens to the client
-	public int clientsideReceiverPort;
-	
 	// port where the client is receiving from server
 	public int receiverPort; 
 	

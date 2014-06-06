@@ -23,6 +23,7 @@ import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -32,14 +33,19 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.io.Serializable;
 
+import dshomework.processes.MigratableProcess;
+
+
 
 public class Client {
 	public Location location;
 	public static int clientKey = -1;
 	//public static ClientProcessMap processes;
 	private static int processID = 0;
+	//keep map of process to migratable process to migrate
 	public static ConcurrentHashMap<String, MigratableProcess> processes;
-	
+	//keep map of process to thread to check is alive()
+	public static ConcurrentHashMap<String, Thread> processToThreads; 
 	public int getSocketNumber(){
 		return location.socketNumber;
 	}
@@ -57,17 +63,27 @@ public class Client {
 	
 	
 	public static void main(String args[]) throws UnknownHostException, IOException, ClassNotFoundException{
+		String hostName ;
 		//check input
-		if (args.length != 0) {
-	        System.err.println("FAILURE. Usage: java Client");
-	        System.err.println("Exiting");
-	        System.exit(0);
+		if (args.length == 1) {
+	        System.err.println("Usage: java Client <serverIp>");
+	        System.err.println("Using defaults for local deployment on eclipse. Using host = "+ Server.HOSTNAME);
+	        hostName = args[0];
 	    }
+		else{
+			hostName=Server.HOSTNAME;
+		}
+		
+		
+		
+		
+		
 		//for storing all the rpocesses at this client 
 		
 				/* Try to connect to server */
-		        String hostName = Server.HOSTNAME;
+		        
 		        int portNumber = Server.INITIAL_PORT;
+		        processToThreads = new ConcurrentHashMap<String, Thread>();
 		        
 		        //create a new receiver port for a client to receive messages from other clients
 		        ServerSocket receiverSocket = new ServerSocket(0);
@@ -128,7 +144,6 @@ class ClientsideReceiver extends Thread{
 	public DataInputStream inputStream=null;
 	public PrintWriter printStream = null;
 	public ServerSocket receiverSocket;
-	private int threadIdentifier;
 	
 	public ClientsideReceiver(ServerSocket newReceiverSocket) {
 		this.receiverSocket = newReceiverSocket;
@@ -145,16 +160,74 @@ class ClientsideReceiver extends Thread{
 		    			System.out.println("Waiting for client");
 			            Socket clientSocket = receiverSocket.accept();    
 			            ObjectInputStream inobj = new ObjectInputStream(clientSocket.getInputStream());
-			            MigratableProcess newObj = (MigratableProcess)inobj.readObject();
-			            System.out.println("Object received. Starting at client ");
-			            //fff.suspend();
+			            Object newObj = inobj.readObject();
+			            if (newObj instanceof MigratableProcess){
+			            	MigratableProcess newObj1 = (MigratableProcess)newObj;
+				            System.out.println("Object received. Starting at client ");
+				            //fff.suspend();
+				            Thread t = new Thread(newObj1);
+				            System.out.println("Thread Id for thread is: "+ t.getId());
+				            //t.getId();
+				            Client.processes.put(newObj1.getName(), newObj1);
+				            Client.processToThreads.put(newObj1.getName(),t);
+				            t.start();
+				            Client.displayProcesses();
+			            } else 
+			            	
+			            	if(newObj instanceof Migrate){
+			            	Migrate newObj1 = (Migrate)newObj;
+			            	//if this process does not exist
+			            	if(Client.processes.containsKey(newObj1.processName)){
+			            	
+			            		// TODO 
+			            		Migrate migrate = (Migrate)newObj;
+			            		String processName = migrate.processName;
+			            		String destinationIp = migrate.destinationIp;
+			            		int destinationPort = migrate.destinationPort;
+			            		
+			            		//if we have the process currently
+			            		if(Client.processes.containsKey(processName)){
+			            			destinationIp = destinationIp.substring(1, destinationIp.length());
+			            			System.out.println("MIGRATING TO socket "+ destinationPort +" on IP "+ destinationIp);
+			            			
+			            			Socket migrateSocket = new Socket(InetAddress.getByName(destinationIp),destinationPort);
+			            			
+			            			//now migrate it
+			            			MigratableProcess migrateThisProcess = (MigratableProcess)Client.processes.get(processName);  
+			            			migrateThisProcess.suspend();
+			            			System.out.println("Suspending process "+ processName);
+			            			ObjectOutputStream outObj = new ObjectOutputStream(migrateSocket.getOutputStream());
+			   					 	outObj.writeObject(migrateThisProcess);
+			   					 	Thread.sleep(200);
+			   					 	outObj = null;
+			            			migrateSocket.close(); 
+			            			//remove references
+			            			migrateThisProcess = null;
+			            			Client.processes.remove(processName);
+			            			
+			            		} else{ //we dont have this process
+			            			System.out.println("process "+processName+" does not exist on this client");
+			            		}
+			            		
+			            		
+			            	
+			            	}
+			            } else 
+			            	
+			            	if(newObj instanceof Remove){
+				            	Remove newobj1 = (Remove)newObj;
+				            	//if process is present here, remove it
+				            	if(Client.processes.containsKey(newobj1.processName)){
+				            		MigratableProcess mp = Client.processes.get(newobj1.processName);
+				            		mp.suspend();
+				            		//delete reference
+				            		mp=null;
+				            		Client.processes.remove(newobj1.processName);
+				            		System.out.println("Removed process "+newobj1.processName);
+			            		
+			            	}
+			            }
 			            
-			            Thread t = new Thread(newObj);
-			            System.out.println("Thread Id for thread is: "+ t.getId());
-			            //t.getId();
-			            Client.processes.put(newObj.getName(), newObj);
-			            t.start();
-			            Client.displayProcesses();
 	            }
 
 		} catch(IOException e){
@@ -166,6 +239,9 @@ class ClientsideReceiver extends Thread{
 			}
 			System.out.println("Thread ended for client");
 		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+
 			e.printStackTrace();
 		}
 			
@@ -189,6 +265,17 @@ class ClientHeartbeat extends Thread{
 		//Socket heartbeatSocket;
 		//PrintWriter outToServer;
 		while(true){
+			
+			for(String s: Client.processes.keySet()){
+				if(Client.processes.get(s)==null)
+					Client.processes.remove(s);
+				if(!Client.processToThreads.containsKey(s))
+					Client.processes.remove(s);
+				if(!Client.processToThreads.get(s).isAlive())
+					Client.processes.remove(s);
+			}
+			
+			
 			try{
 				//open up a socket for heartbeat to the server
 				Socket heartbeatSocket = new Socket(Server.HOSTNAME, Server.HEARTBEAT_PORT);
@@ -198,7 +285,7 @@ class ClientHeartbeat extends Thread{
 		        //BufferedReader inFromServer = new BufferedReader(new InputStreamReader(
 		        //heartbeatSocket.getInputStream()));
 		        outToServer.println("HEARTBEAT "+ clientKey);
-				System.out.println("SENT = HEARTBEAT "+ clientKey +" Now sending process map..");
+				//System.out.println("SENT = HEARTBEAT "+ clientKey +" Now sending process map..");
 				outToServer.println(Client.processes);
 				//include a safe time buffer
 				Thread.sleep(30);
@@ -213,7 +300,7 @@ class ClientHeartbeat extends Thread{
 				System.out.println("Process Manager could not contact client. Retrying.");
 				continue;
 			}
-		}
+		}//end of infinite while
 
 	}
 }

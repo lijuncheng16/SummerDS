@@ -1,4 +1,4 @@
-package dshomework.network;
+package dshomework.processes;
 
 //import SlaveServer;
 //import SlaveServiceException;
@@ -14,6 +14,9 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 import com.sun.xml.internal.fastinfoset.util.StringArray;
+
+import dshomework.network.Server;
+import dshomework.network.StatusMessages;
 
 
 

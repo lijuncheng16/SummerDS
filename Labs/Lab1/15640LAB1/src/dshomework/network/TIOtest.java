@@ -6,6 +6,8 @@ import java.lang.reflect.Constructor;
 
 import com.sun.xml.internal.fastinfoset.util.StringArray;
 
+import dshomework.processes.MigratableProcess;
+
 
 
 public class TIOtest {
@@ -14,7 +16,7 @@ public class TIOtest {
 //		GrepProcess gp = new GrepProcess(arrv);
 //		new Thread(gp).start();	
 		
-		Class<?> userClass = Class.forName("grepprocess.GrepProcess");
+		Class<?> userClass = Class.forName("dshomework.processes.GrepProcess");
 		Constructor<?> constructorNew = userClass.getConstructor(String[].class);
 		MigratableProcess instance = (MigratableProcess)constructorNew.newInstance((Object)arrv);
 		new Thread(instance).start();
