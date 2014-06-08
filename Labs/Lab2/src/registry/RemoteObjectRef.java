@@ -36,6 +36,19 @@ public class RemoteObjectRef
 		// arguments etc., in a marshalled form, and CM (yourRMI) sends it out to 
 		// another place. 
 		// Here let it return null.
+		Class<?> c;
+		
+		try {
+			c = Class.forName(Remote_Interface_Name + "_stub");
+			Object o = c.newInstance();
+			return o;
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
 		
 		return null;
 	}
