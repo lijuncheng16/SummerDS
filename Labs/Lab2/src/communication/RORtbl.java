@@ -10,12 +10,13 @@ import registry.RemoteObjectRef;
 
 public class RORtbl
 {
-	// I omit all instance variables. you can use hash table, for example.
-	// The table would have a key by ROR.
+	private int counter = 0;
+	// TODO Hashtable
 
 	// make a new table. 
 	public RORtbl()
-	{}
+	{
+	}
 
 	// add a remote object to the table. 
 	// Given an object, you can get its class, hence its remote interface.

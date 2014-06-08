@@ -51,7 +51,7 @@ public class SimpleRegistry
 
 			System.out.println("it is found!.");
 
-			// receive ROR data, witout check.
+			// receive ROR data, without check.
 			String ro_IPAdr = in.readLine();
 
 			System.out.println(ro_IPAdr);
@@ -88,9 +88,8 @@ public class SimpleRegistry
 
 	// rebind a ROR. ROR can be null. again no check, on this or whatever. 
 	// I hate this but have no time.
-	public void rebind(String serviceName, RemoteObjectRef ror) 
-			throws IOException
-			{
+	public void rebind(String serviceName, RemoteObjectRef ror) throws IOException
+	{
 		// open socket. same as before.
 		Socket soc = new Socket(Host, Port);
 
@@ -113,5 +112,5 @@ public class SimpleRegistry
 
 		// close the socket.
 		soc.close();
-			}
+	}
 } 

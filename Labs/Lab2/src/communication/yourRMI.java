@@ -27,9 +27,8 @@ public class yourRMI
 	// It will use a hash table, which contains ROR together with
 	// reference to the remote object.
 	// As you can see, the exception handling is not done at all.
-	public static void main(String args[])    
-			throws Exception
-			{
+	public static void main(String args[]) throws Exception
+	{
 		String InitialClassName = args[0];
 		String registryHost = args[1];
 		int registryPort = Integer.parseInt(args[2]);	
@@ -69,18 +68,18 @@ public class yourRMI
 		{
 			// (1) receives an invocation request.
 			// (2) creates a socket and input/output streams.
-			// (3) gets the invocation, in martiallled form.
+			// (3) gets the invocation, in marshalled form.
 			// (4) gets the real object reference from tbl.
 			// (5) Either:
 			//      -- using the interface name, asks the skeleton,
 			//         together with the object reference, to unmartial
 			//         and invoke the real object.
-			//      -- or do unmarshalling directly and involkes that
+			//      -- or do unmarshalling directly and invoke that
 			//         object directly.
 			// (6) receives the return value, which (if not marshalled
 			//     you should marshal it here) and send it out to the 
 			//     the source of the invoker.
 			// (7) closes the socket.
 		}
-			}
+	}
 }
