@@ -10,26 +10,26 @@ import registry.RemoteObjectRef;
 
 public class RORtbl
 {
- // I omit all instance variables. you can use hash table, for example.
- // The table would have a key by ROR.
- 
- // make a new table. 
- public RORtbl()
+	// I omit all instance variables. you can use hash table, for example.
+	// The table would have a key by ROR.
+
+	// make a new table. 
+	public RORtbl()
 	{}
 
- // add a remote object to the table. 
- // Given an object, you can get its class, hence its remote interface.
- // Using it, you can construct a ROR. 
- // The host and port are not used unless it is exported outside.
- // In any way, it is better to have it for uniformity.
- public void addObj(String host, int port, Object o)
+	// add a remote object to the table. 
+	// Given an object, you can get its class, hence its remote interface.
+	// Using it, you can construct a ROR. 
+	// The host and port are not used unless it is exported outside.
+	// In any way, it is better to have it for uniformity.
+	public void addObj(String host, int port, Object o)
 	{
 	}
 
- // given ror, find the corresponding object.
- public Object findObj(RemoteObjectRef ror)
+	// given ror, find the corresponding object.
+	public Object findObj(RemoteObjectRef ror)
 	{
-	    // if you use a hash table this is easy.
-	    return null;
+		// if you use a hash table this is easy.
+		return null;
 	}
 }
