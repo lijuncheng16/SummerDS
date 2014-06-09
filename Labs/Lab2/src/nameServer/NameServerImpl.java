@@ -5,40 +5,40 @@ import registry.RemoteObjectRef;
 public class NameServerImpl 
 implements NameServer
 {
-String serviceName;
-RemoteObjectRef ro;
-NameServer next;
+	String serviceName;
+	RemoteObjectRef ro;
+	NameServer next;
 
-public NameServerImpl()
-{
-serviceName="";
-ro=null;
-next=null;
-}
+	public NameServerImpl()
+	{
+		serviceName="";
+		ro=null;
+		next=null;
+	}
 
-public NameServerImpl(String s, RemoteObjectRef r, NameServer n)
-{
-serviceName=s;
-ro=r;
-next=n;
-}
+	public NameServerImpl(String s, RemoteObjectRef r, NameServer n)
+	{
+		serviceName=s;
+		ro=r;
+		next=n;
+	}
 
-public RemoteObjectRef match(String name)
-{
-if (name.equals(serviceName))
-    return ro;
-else
-    return null;
-}
+	public RemoteObjectRef match(String name)
+	{
+		if (name.equals(serviceName))
+			return ro;
+		else
+			return null;
+	}
 
-public  NameServer next()
-{
-return next;
-}
+	public  NameServer next()
+	{
+		return next;
+	}
 
-@Override
-public NameServer add(String s, RemoteObjectRef r, NameServer n) {
-	return new NameServerImpl(s, r, this);
-}
+	@Override
+	public NameServer add(String s, RemoteObjectRef r, NameServer n) {
+		return new NameServerImpl(s, r, this);
+	}
 }
 

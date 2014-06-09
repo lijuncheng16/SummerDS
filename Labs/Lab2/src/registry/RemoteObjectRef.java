@@ -37,7 +37,7 @@ public class RemoteObjectRef
 		// another place. 
 		// Here let it return null.
 		Class<?> c;
-		
+
 		try {
 			c = Class.forName(Remote_Interface_Name + "_stub");
 			Object o = c.newInstance();
@@ -49,7 +49,7 @@ public class RemoteObjectRef
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
-		
+
 		return null;
 	}
 }
