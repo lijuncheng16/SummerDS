@@ -37,7 +37,8 @@ implements NameServer
 	}
 
 	@Override
-	public NameServer add(String s, RemoteObjectRef r, NameServer n) {
+	public NameServer add(String s, RemoteObjectRef r, NameServer n)
+	{
 		return new NameServerImpl(s, r, this);
 	}
 }

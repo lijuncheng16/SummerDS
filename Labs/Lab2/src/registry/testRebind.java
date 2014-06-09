@@ -7,9 +7,8 @@ import java.io.*;
 public class testRebind
 {
 
-	public static void main(String args[])    
-			throws IOException
-			{
+	public static void main(String args[]) throws IOException
+	{
 		// it takes seven arguments.
 		// these are it wishes to connect to.
 		String host = args[0];
@@ -55,5 +54,5 @@ public class testRebind
 			System.out.println("no registry found.");
 		}
 
-			}
+	}
 }

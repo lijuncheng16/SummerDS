@@ -1,7 +1,6 @@
 package zipCodeServerRemoteRef;
 
-public class ZipCodeRListImpl 
-implements  ZipCodeRList
+public class ZipCodeRListImpl implements  ZipCodeRList
 {
 	String city;
 	String zipcode;

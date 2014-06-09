@@ -18,9 +18,8 @@ public class SimpleRegistry
 	}
 
 	// returns the ROR (if found) or null (if else)
-	public RemoteObjectRef lookup(String serviceName) 
-			throws IOException
-			{
+	public RemoteObjectRef lookup(String serviceName) throws IOException
+	{
 		// open socket.
 		// it assumes registry is already located by locate registry.
 		// you should usually do try-catch here (and later).
@@ -84,7 +83,7 @@ public class SimpleRegistry
 
 		// return ROR.
 		return ror;
-			}
+	}
 
 	// rebind a ROR. ROR can be null. again no check, on this or whatever. 
 	// I hate this but have no time.

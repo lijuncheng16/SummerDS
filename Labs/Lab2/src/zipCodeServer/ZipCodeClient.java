@@ -25,9 +25,8 @@ public class ZipCodeClient {
 	// (1) a port.
 	// (2) a service name.
 	// (3) a file name as above. 
-	public static void main(String[] args) 
-			throws IOException
-			{
+	public static void main(String[] args) throws IOException
+	{
 		String host = args[0];
 		int port = Integer.parseInt(args[1]);
 		String serviceName = args[2];
@@ -101,5 +100,5 @@ public class ZipCodeClient {
 		System.out.println("\n We test the remote site printing.");
 		// here is a test.
 		zcs.printAll();
-			}
+	}
 }

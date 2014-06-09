@@ -6,10 +6,8 @@ import java.io.*;
 
 public class testLookup
 {
-
-	public static void main(String args[])    
-			throws IOException
-			{
+	public static void main(String args[]) throws IOException
+	{
 		// it takes three arguments.
 		// these are it wishes to connect to.
 		String host = args[0];
@@ -46,6 +44,5 @@ public class testLookup
 		{
 			System.out.println("no registry found.");
 		}
-
-			}
+	}
 }

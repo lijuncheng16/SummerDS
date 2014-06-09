@@ -38,15 +38,22 @@ public class RemoteObjectRef
 		// Here let it return null.
 		Class<?> c;
 
-		try {
+		try
+		{
 			c = Class.forName(Remote_Interface_Name + "_stub");
 			Object o = c.newInstance();
 			return o;
-		} catch (ClassNotFoundException e) {
+		}
+		catch (ClassNotFoundException e)
+		{
 			e.printStackTrace();
-		} catch (InstantiationException e) {
+		}
+		catch (InstantiationException e)
+		{
 			e.printStackTrace();
-		} catch (IllegalAccessException e) {
+		}
+		catch (IllegalAccessException e)
+		{
 			e.printStackTrace();
 		}
 

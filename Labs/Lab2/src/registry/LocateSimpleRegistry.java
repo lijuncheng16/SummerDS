@@ -14,7 +14,8 @@ public class LocateSimpleRegistry
 	public static SimpleRegistry getRegistry(String host, int port)
 	{
 		// open socket.
-		try{
+		try
+		{
 			Socket soc = new Socket(host, port);
 
 			// get TCP streams and wrap them. 

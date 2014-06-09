@@ -11,8 +11,7 @@ import java.io.*;
 //therefore it does not contain main: new object creation, binding etc. is 
 //done via your RMI.
 
-public class ZipCodeServerImpl
-implements ZipCodeServer
+public class ZipCodeServerImpl implements ZipCodeServer
 {
 	ZipCodeList l;
 
